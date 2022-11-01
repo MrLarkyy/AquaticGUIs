@@ -58,8 +58,8 @@ public class MenuSession {
         new BukkitRunnable() {
             @Override
             public void run() {
-                nmsHandler.openScreen(player,inventoryId,Menu.translateMenuType(type,size),title);
                 nmsHandler.emptyPlayerInventory(player,true);
+                nmsHandler.openScreen(player,inventoryId,Menu.translateMenuType(type,size),title);
                 loadItems();
             }
         }.runTaskAsynchronously(nmsHandler.getPlugin());
