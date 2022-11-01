@@ -29,7 +29,7 @@ public final class AquaticGUIs extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new ReaderListeners(),this);
 
         Player p = Bukkit.getPlayer("MrLarkyy_");
-        Menu menu = new Menu("Test Menu",18, Menu.Type.DEFAULT,nmsHandler, m -> {
+        Menu menu = new Menu("Test Menu",9, Menu.Type.DEFAULT,nmsHandler, m -> {
             m.addMenuItem(new MenuItem(new ItemStack(Material.STONE), Arrays.asList(e -> {
 
             }), Arrays.asList(0)));
@@ -42,7 +42,8 @@ public final class AquaticGUIs extends JavaPlugin {
                 session.setTitle("Just a new title lol");
                 session.setMenuItem(new MenuItem(new ItemStack(Material.DIAMOND),new ArrayList<>(Arrays.asList(e -> {
                 p.sendMessage("This is a packet based Item! (Click type:"+e.getActionType()+")");
-            })), Arrays.asList(1,40)));
+                })), Arrays.asList(1,40)));
+                session.update();
             }
         }.runTaskLater(this,0);
 

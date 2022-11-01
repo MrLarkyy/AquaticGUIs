@@ -1,5 +1,6 @@
 package xyz.larkyy.aquaticguis.api;
 
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
@@ -38,7 +39,7 @@ public class MenuSession {
     public void setMenuItem(MenuItem menuItem) {
         menuItem.getSlots().forEach(slot -> {
             items.put(slot,menuItem);
-            nmsHandler.setSlotPacket(player,inventoryId,slot,menuItem.getItemStack());
+            //nmsHandler.setSlotPacket(player,inventoryId,slot,menuItem.getItemStack());
         });
     }
 
@@ -70,6 +71,7 @@ public class MenuSession {
         for (Map.Entry<Integer, MenuItem> entry : items.entrySet()) {
             Integer slot = entry.getKey();
             MenuItem menuItem = entry.getValue();
+            /*
             int actualInventoryId = inventoryId;
             int actualSlot;
 
@@ -86,7 +88,10 @@ public class MenuSession {
                     actualSlot -= 36;
                 }
             }
-            nmsHandler.setSlotPacket(player, actualInventoryId, actualSlot, menuItem.getItemStack());
+
+             */
+            //Bukkit.broadcastMessage("Setting an item to a slot "+actualSlot+" of inventory "+actualInventoryId);
+            nmsHandler.setSlotPacket(player, inventoryId, slot, menuItem.getItemStack());
         }
     }
 
