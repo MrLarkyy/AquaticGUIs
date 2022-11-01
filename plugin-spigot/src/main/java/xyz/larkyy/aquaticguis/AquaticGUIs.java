@@ -16,6 +16,8 @@ public final class AquaticGUIs extends JavaPlugin {
         instance = this;
         nmsHandler = new NMS_v1_19_R2(this);
         validatePlayers();
+
+        getServer().getPluginManager().registerEvents(new ReaderListeners(),this);
     }
 
     @Override

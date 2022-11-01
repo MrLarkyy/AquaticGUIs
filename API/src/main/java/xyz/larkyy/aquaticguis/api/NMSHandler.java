@@ -2,6 +2,7 @@ package xyz.larkyy.aquaticguis.api;
 
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.List;
 
@@ -14,5 +15,6 @@ public interface NMSHandler {
     void injectPlayer(Player player);
     void ejectPlayer(Player player);
     void openScreen(Player player, int inventoryId, String inventoryType, String title);
+    JavaPlugin getPlugin();
 
 }

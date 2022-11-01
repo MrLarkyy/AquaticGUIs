@@ -169,6 +169,11 @@ public final class NMS_v1_19_R2 implements NMSHandler {
         var pkt = new ClientboundOpenScreenPacket(inventoryId,translateInventoryType(inventoryType), Component.translatable(title));
     }
 
+    @Override
+    public JavaPlugin getPlugin() {
+        return plugin;
+    }
+
     private MenuType translateInventoryType(String type) {
         switch (type.toLowerCase()) {
             case "anvil" -> {

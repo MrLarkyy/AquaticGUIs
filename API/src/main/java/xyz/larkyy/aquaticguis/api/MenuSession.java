@@ -1,6 +1,7 @@
 package xyz.larkyy.aquaticguis.api;
 
 import org.bukkit.entity.Player;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.Map;
 
@@ -54,9 +55,15 @@ public class MenuSession {
     }
 
     public void update() {
-        nmsHandler.openScreen(player,inventoryId,Menu.translateMenuType(type,size),title);
-        nmsHandler.emptyPlayerInventory(player,true);
-        loadItems();
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                nmsHandler.openScreen(player,inventoryId,Menu.translateMenuType(type,size),title);
+                nmsHandler.emptyPlayerInventory(player,true);
+                loadItems();
+            }
+        }.runTaskAsynchronously(nmsHandler.getPlugin());
+
     }
 
     private void loadItems() {
@@ -79,7 +86,6 @@ public class MenuSession {
                     actualSlot -= 36;
                 }
             }
-
             nmsHandler.setSlotPacket(player, actualInventoryId, actualSlot, menuItem.getItemStack());
         }
     }
