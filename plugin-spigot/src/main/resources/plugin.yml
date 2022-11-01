@@ -1,0 +1,4 @@
+name: AquaticGUIs
+version: '${project.version}'
+main: xyz.larkyy.aquaticguis.AquaticGUIs
+api-version: 1.19
