@@ -7,10 +7,7 @@ import io.netty.channel.ChannelPromise;
 import net.minecraft.core.NonNullList;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientboundContainerSetContentPacket;
-import net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket;
-import net.minecraft.network.protocol.game.ClientboundOpenScreenPacket;
-import net.minecraft.network.protocol.game.ServerboundContainerClickPacket;
+import net.minecraft.network.protocol.game.*;
 import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.inventory.MenuType;
 import org.bukkit.Bukkit;
@@ -65,6 +62,11 @@ public final class NMS_v1_19_R2 implements NMSHandler {
     public void setContentPacket(Player player, int inventoryId, List<ItemStack> itemStacks) {
 
     }
+    @Override
+    public void openScreen(Player player, int inventoryId, String inventoryType, String title) {
+        var pkt = new ClientboundOpenScreenPacket(inventoryId,translateInventoryType(inventoryType), Component.translatable(title));
+        ((CraftPlayer)player).getHandle().connection.send(pkt);
+    }
 
     @Override
     public int getInventoryId(Player player) {
@@ -81,9 +83,10 @@ public final class NMS_v1_19_R2 implements NMSHandler {
 
             @Override
             public void channelRead(ChannelHandlerContext channelHandlerContext, Object packet) throws Exception {
+                Inventory inventory = player.getOpenInventory().getTopInventory();
 
                 if (packet instanceof ServerboundContainerClickPacket p) {
-                    Inventory inventory = player.getOpenInventory().getTopInventory();
+
                     if (inventory.getHolder() instanceof Menu menu) {
                         var menuSession = menu.getSession(player);
 
@@ -137,6 +140,7 @@ public final class NMS_v1_19_R2 implements NMSHandler {
                 if (packet instanceof ClientboundContainerSetContentPacket p) {
                     Inventory inventory = player.getOpenInventory().getTopInventory();
                     if (inventory.getHolder() instanceof Menu) {
+                        Bukkit.broadcastMessage("Packet cancelled");
                         return;
                     }
                 }
@@ -162,11 +166,6 @@ public final class NMS_v1_19_R2 implements NMSHandler {
 
             }
         }
-    }
-
-    @Override
-    public void openScreen(Player player, int inventoryId, String inventoryType, String title) {
-        var pkt = new ClientboundOpenScreenPacket(inventoryId,translateInventoryType(inventoryType), Component.translatable(title));
     }
 
     @Override
