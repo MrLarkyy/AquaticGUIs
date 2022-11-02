@@ -1,35 +1,45 @@
 package xyz.larkyy.aquaticguis;
 
 import org.bukkit.Bukkit;
-import org.bukkit.Material;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.scheduler.BukkitRunnable;
-import xyz.larkyy.aquaticguis.api.Menu;
-import xyz.larkyy.aquaticguis.api.MenuItem;
-import xyz.larkyy.aquaticguis.api.MenuSession;
+import xyz.larkyy.aquaticguis.action.Actions;
 import xyz.larkyy.aquaticguis.api.NMSHandler;
+import xyz.larkyy.aquaticguis.condition.Conditions;
 import xyz.larkyy.aquaticguis.nms.NMS_v1_19_R2;
-
-import java.util.ArrayList;
-import java.util.Arrays;
 
 public final class AquaticGUIs extends JavaPlugin {
 
     private static AquaticGUIs instance;
     private NMSHandler nmsHandler;
+    private Conditions conditions;
+    private Actions actions;
+    private MenuRegistry menuRegistry;
 
     @Override
     public void onEnable() {
         instance = this;
         nmsHandler = new NMS_v1_19_R2(this);
+        conditions = new Conditions();
+        actions = new Actions();
+        menuRegistry = new MenuRegistry();
+
         validatePlayers();
 
         getServer().getPluginManager().registerEvents(new ReaderListeners(),this);
+        getServer().getPluginManager().registerEvents(new MenuListeners(),this);
+
+        menuRegistry.load();
 
         Player p = Bukkit.getPlayer("MrLarkyy_");
-        Menu menu = new Menu("Test Menu",9, Menu.Type.DEFAULT,nmsHandler, m -> {
+        var menu = menuRegistry.getMenu("testmenu");
+        if (menu == null) {
+            p.sendMessage("Menu is null");
+            return;
+        }
+        menu.open(p);
+
+        /*Menu menu = new Menu("Test Menu",9, Menu.Type.CHEST,nmsHandler, m -> {
             m.addMenuItem(new MenuItem(new ItemStack(Material.STONE), Arrays.asList(e -> {
 
             }), Arrays.asList(0)));
@@ -46,6 +56,8 @@ public final class AquaticGUIs extends JavaPlugin {
                 session.update();
             }
         }.runTaskLater(this,0);
+
+         */
 
     }
 
@@ -74,5 +86,17 @@ public final class AquaticGUIs extends JavaPlugin {
 
     public NMSHandler getNmsHandler() {
         return nmsHandler;
+    }
+
+    public Conditions getConditions() {
+        return conditions;
+    }
+
+    public Actions getActions() {
+        return actions;
+    }
+
+    public MenuRegistry getMenuRegistry() {
+        return menuRegistry;
     }
 }

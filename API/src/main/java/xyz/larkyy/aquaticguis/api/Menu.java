@@ -2,6 +2,7 @@ package xyz.larkyy.aquaticguis.api;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 
@@ -13,8 +14,19 @@ import java.util.function.Consumer;
 public class Menu implements InventoryHolder {
 
     public enum Type {
-        DEFAULT,
-        DISPENSER
+        CHEST(InventoryType.CHEST),
+        DISPENSER(InventoryType.DISPENSER),
+        CRAFTING(InventoryType.CRAFTING);
+
+        private final InventoryType invType;
+
+        Type(InventoryType invType) {
+            this.invType = invType;
+        }
+
+        public InventoryType getInvType() {
+            return invType;
+        }
     }
 
     private final Map<Integer,MenuItem> items = new HashMap<>();
@@ -44,7 +56,11 @@ public class Menu implements InventoryHolder {
     }
 
     private void buildInventory() {
-        inventory = Bukkit.createInventory(this,size,title);
+        if (type.getInvType() == InventoryType.CHEST) {
+            inventory = Bukkit.createInventory(this,size,title);
+        } else {
+            inventory = Bukkit.createInventory(this,type.getInvType(),title);
+        }
     }
 
     public MenuSession open(Player player) {

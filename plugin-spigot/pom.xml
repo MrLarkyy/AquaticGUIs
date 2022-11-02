@@ -60,6 +60,20 @@
                                 </filter>
                             </filters>
                             <createDependencyReducedPom>false</createDependencyReducedPom>
+                            <relocations>
+                                <relocation>
+                                    <pattern>xyz.larkyy.menulib</pattern>
+                                    <shadedPattern>xyz.larkyy.aquaticguis.shaded.menulib</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>xyz.larkyy.itemlibrary</pattern>
+                                    <shadedPattern>xyz.larkyy.aquaticguis.shaded.itemlibrary</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>xyz.larkyy.colorutils</pattern>
+                                    <shadedPattern>xyz.larkyy.aquaticguis.shaded.colorutils</shadedPattern>
+                                </relocation>
+                            </relocations>
                         </configuration>
                     </execution>
                 </executions>
@@ -96,10 +110,21 @@
             <version>0.0.1</version>
         </dependency>
         <dependency>
+            <groupId>xyz.larkyy</groupId>
+            <artifactId>ItemLibrary</artifactId>
+            <version>0.0.6</version>
+        </dependency>
+        <dependency>
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot-api</artifactId>
             <version>1.16.5-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.12.0</version>
+            <scope>compile</scope>
         </dependency>
     </dependencies>
 </project>

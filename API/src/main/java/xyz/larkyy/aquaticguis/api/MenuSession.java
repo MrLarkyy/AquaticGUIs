@@ -60,11 +60,14 @@ public class MenuSession {
             @Override
             public void run() {
                 nmsHandler.emptyPlayerInventory(player,true);
-                nmsHandler.openScreen(player,inventoryId,Menu.translateMenuType(type,size),title);
+                updateTitle();
                 loadItems();
             }
         }.runTaskAsynchronously(nmsHandler.getPlugin());
+    }
 
+    public void updateTitle() {
+        nmsHandler.openScreen(player,inventoryId,Menu.translateMenuType(type,size),title);
     }
 
     private void loadItems() {

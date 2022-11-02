@@ -140,7 +140,6 @@ public final class NMS_v1_19_R2 implements NMSHandler {
                 if (packet instanceof ClientboundContainerSetContentPacket p) {
                     Inventory inventory = player.getOpenInventory().getTopInventory();
                     if (inventory.getHolder() instanceof Menu) {
-                        Bukkit.broadcastMessage("Packet cancelled");
                         return;
                     }
                 }
