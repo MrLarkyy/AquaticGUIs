@@ -1,5 +1,6 @@
 package xyz.larkyy.aquaticguis.menu.title;
 
+import org.bukkit.Bukkit;
 import org.bukkit.scheduler.BukkitRunnable;
 import xyz.larkyy.aquaticguis.AquaticGUIs;
 import xyz.larkyy.aquaticguis.api.MenuSession;

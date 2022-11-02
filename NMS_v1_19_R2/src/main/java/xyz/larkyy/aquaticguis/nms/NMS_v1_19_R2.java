@@ -126,6 +126,15 @@ public final class NMS_v1_19_R2 implements NMSHandler {
                         return;
                     }
                 }
+                if (packet instanceof ServerboundContainerClosePacket p) {
+                    super.channelRead(channelHandlerContext, packet);
+                    if (p.getContainerId() == getInventoryId(player)) {
+                        var pkt = new ClientboundContainerClosePacket(p.getContainerId());
+                        ((CraftPlayer)player).getHandle().connection.send(pkt);
+                    }
+                    return;
+                }
+
                 super.channelRead(channelHandlerContext, packet);
             }
 
