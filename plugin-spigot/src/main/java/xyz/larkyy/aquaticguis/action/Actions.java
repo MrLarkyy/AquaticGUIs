@@ -2,6 +2,7 @@ package xyz.larkyy.aquaticguis.action;
 
 import xyz.larkyy.aquaticguis.AquaticGUIs;
 import xyz.larkyy.aquaticguis.action.impl.MessageAction;
+import xyz.larkyy.aquaticguis.action.impl.OpenMenuAction;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -16,7 +17,8 @@ public class Actions {
     }
 
     private void loadDefaultActions() {
-        actionTypes.put("message", new MessageAction());
+        registerAction("message", new MessageAction());
+        registerAction("openmenu", new OpenMenuAction());
     }
 
     public void registerAction(String id, Action action) {

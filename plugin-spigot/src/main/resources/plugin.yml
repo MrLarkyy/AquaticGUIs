@@ -1,4 +1,14 @@
 name: AquaticGUIs
 version: '${project.version}'
 main: xyz.larkyy.aquaticguis.AquaticGUIs
-api-version: 1.19
+api-version: 1.16
+commands:
+  aquaticguis:
+    aliases:
+      - aguis
+      - amenus
+      - aquaticmenus
+      - amenu
+      - agui
+      - aquaticgui
+      - aquaticmenu

@@ -15,7 +15,6 @@ public class PermissionCondition extends Condition {
 
     @Override
     public boolean isMet(Player player, Map<String, String> filledArguments) {
-        Bukkit.broadcastMessage("Player "+player.getPlayer()+" has permission: "+player.hasPermission(filledArguments.get("permission")));
         return (player.hasPermission(filledArguments.get("permission")));
     }
 }

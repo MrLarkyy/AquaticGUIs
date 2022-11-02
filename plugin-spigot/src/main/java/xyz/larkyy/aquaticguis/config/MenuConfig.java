@@ -1,24 +1,21 @@
 package xyz.larkyy.aquaticguis.config;
 
 import cz.larkyy.shaded.colorutils.Colors;
-import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 import xyz.larkyy.aquaticguis.AquaticGUIs;
-import xyz.larkyy.aquaticguis.AquaticMenu;
+import xyz.larkyy.aquaticguis.menu.AquaticMenu;
+import xyz.larkyy.aquaticguis.menu.AquaticMenuItem;
 import xyz.larkyy.aquaticguis.action.ActionList;
-import xyz.larkyy.aquaticguis.action.Actions;
-import xyz.larkyy.aquaticguis.action.ConfiguredAction;
+import xyz.larkyy.aquaticguis.api.InventoryActionEvent;
 import xyz.larkyy.aquaticguis.api.Menu;
+import xyz.larkyy.aquaticguis.clickaction.ClickActions;
 import xyz.larkyy.aquaticguis.condition.ConditionList;
-import xyz.larkyy.aquaticguis.condition.Conditions;
-import xyz.larkyy.aquaticguis.condition.ConfiguredCondition;
+import xyz.larkyy.aquaticguis.menu.title.MenuTitle;
+import xyz.larkyy.itemlibrary.CustomItem;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class MenuConfig extends Config {
 
@@ -39,8 +36,8 @@ public class MenuConfig extends Config {
 
         String identifier = getFile().getName().substring(0,getFile().getName().length()-4);
 
-        return new AquaticMenu(identifier,
-                title,
+        var menu = new AquaticMenu(identifier,
+                loadMenuTitle(),
                 size,
                 type,
                 AquaticGUIs.getInstance().getNmsHandler(),
@@ -48,109 +45,107 @@ public class MenuConfig extends Config {
                 openActions,
                 closeAction
         );
+
+        if (getConfiguration().contains("items")) {
+            getConfiguration().getConfigurationSection("items").getKeys(false).forEach(key -> {
+                menu.addMenuItem(loadMenuItem("items."+key));
+            });
+        }
+
+        return menu;
     }
 
-    private ActionList loadActionList(String path) {
-        if (!getConfiguration().contains(path)) {
-            return new ActionList();
+    private MenuTitle loadMenuTitle() {
+        List<String> frames;
+        Object cfgVal = getConfiguration().get("title");
+        if (cfgVal == null) {
+            return new MenuTitle(new ArrayList<>(Arrays.asList("")),-1);
         }
-        List<ConfiguredAction> actions = new ArrayList<>();
-        Object obj = getConfiguration().get(path);
-        if (obj instanceof List<?>) {
-            List<String> list = (List<String>) obj;
-            for (String str : list) {
-                ConfiguredAction action = translateAction(str);
-                if (action == null) {
-                    continue;
-                }
-                actions.add(action);
-            }
-            return new ActionList(actions,new ConditionList());
+        if (cfgVal instanceof List<?>) {
+            frames = (List<String>)cfgVal;
         } else {
-            for (String str : getConfiguration().getConfigurationSection(path).getKeys(false)) {
-                ConfiguredAction action = loadAction(path+"."+str);
-                if (action == null) {
-                    continue;
-                }
-                actions.add(action);
-            }
-
-            ConditionList conditionList;
-            if (getConfiguration().contains(path+".conditions")) {
-                conditionList = loadConditionList(path+".conditions");
-            } else {
-                conditionList = new ConditionList();
-            }
-            return new ActionList(actions,conditionList);
+            frames = new ArrayList<>();
+            frames.add(cfgVal.toString());
         }
+        int update = getConfiguration().getInt("title-update",-1);
+        return new MenuTitle(frames,update);
     }
 
-    private ConfiguredAction loadAction(String path) {
+    private AquaticMenuItem loadMenuItem(String path) {
+        var is = CustomItem.loadFromYaml(getConfiguration(),path).getItem();
+        List<Integer> slots = getConfiguration().getIntegerList(path+".slots");
+        int priority = getConfiguration().getInt(path+".priority");
+        var clickActions = loadClickActions(path);
 
-        var action = translateAction(getConfiguration().getString(path+".value"));
-        if (action == null) {
-            return null;
-        }
-        if (getConfiguration().contains(path+".conditions")) {
-            action.setConditions(loadConditionList(path+".conditions"));
-        }
-        return action;
+        return new AquaticMenuItem(is,slots,priority,clickActions);
     }
 
-    private ConfiguredAction translateAction(String value) {
-        String args;
-        if (value.startsWith("[message]")) {
-            args = value.substring(9).trim();
-            return new ConfiguredAction(
-                    new ConditionList(new ActionList(), new ActionList()),
-                    Actions.inst().getAction("message"),args
-            );
-        }
-        return null;
-    }
+    private ClickActions loadClickActions(String path) {
+        Map<InventoryActionEvent.ActionType,ActionList> clickActions = new HashMap<>();
 
-    private ConditionList loadConditionList(String path) {
-        if (!getConfiguration().contains(path)) {
-            return new ConditionList();
-        }
-        List<ConfiguredCondition> conditions = new ArrayList<>();
-        for (String str : getConfiguration().getConfigurationSection(path).getKeys(false)) {
+        ActionList actionList;
 
-            ConfiguredCondition condition = loadCondition(path+"."+str);
-            if (condition != null) {
-                conditions.add(condition);
-                Bukkit.broadcastMessage("Adding");
-            }
+        actionList = loadActionList(path+".left-click-actions");
+        if (!actionList.isEmpty()) {
+            clickActions.put(InventoryActionEvent.ActionType.LEFT,actionList);
         }
-        if (conditions.isEmpty()) {
-            return new ConditionList(new ActionList(), new ActionList(),conditions);
+        actionList = loadActionList(path+".shift-left-click-actions");
+        if (!actionList.isEmpty()) {
+            clickActions.put(InventoryActionEvent.ActionType.SHIFT_LEFT,actionList);
         }
-        ActionList successActions = loadActionList(path+".success-actions");
-        ActionList failActions = loadActionList(path+".fail-actions");
-
-        return new ConditionList(failActions,successActions,conditions);
-    }
-
-    private ConfiguredCondition loadCondition(String path) {
-        final FileConfiguration cfg = getConfiguration();
-        String type = cfg.getString(path+".type");
-        if (type == null) {
-            return null;
+        actionList = loadActionList(path+".right-click-actions");
+        if (!actionList.isEmpty()) {
+            clickActions.put(InventoryActionEvent.ActionType.RIGHT,actionList);
         }
-        var condition = Conditions.inst().getCondition(type);
-        if (condition == null) {
-            Bukkit.broadcastMessage("Unknown condition");
-            return null;
+        actionList = loadActionList(path+".shift-right-click-actions");
+        if (!actionList.isEmpty()) {
+            clickActions.put(InventoryActionEvent.ActionType.SHIFT_RIGHT,actionList);
+        }
+        actionList = loadActionList(path+".drop-actions");
+        if (!actionList.isEmpty()) {
+            clickActions.put(InventoryActionEvent.ActionType.THROW,actionList);
+        }
+        actionList = loadActionList(path+".num-1-actions");
+        if (!actionList.isEmpty()) {
+            clickActions.put(InventoryActionEvent.ActionType.NUM_1,actionList);
+        }
+        actionList = loadActionList(path+".num-2-actions");
+        if (!actionList.isEmpty()) {
+            clickActions.put(InventoryActionEvent.ActionType.NUM_2,actionList);
+        }
+        actionList = loadActionList(path+".num-3-actions");
+        if (!actionList.isEmpty()) {
+            clickActions.put(InventoryActionEvent.ActionType.NUM_3,actionList);
+        }
+        actionList = loadActionList(path+".num-4-actions");
+        if (!actionList.isEmpty()) {
+            clickActions.put(InventoryActionEvent.ActionType.NUM_4,actionList);
+        }
+        actionList = loadActionList(path+".num-5-actions");
+        if (!actionList.isEmpty()) {
+            clickActions.put(InventoryActionEvent.ActionType.NUM_5,actionList);
+        }
+        actionList = loadActionList(path+".num-6-actions");
+        if (!actionList.isEmpty()) {
+            clickActions.put(InventoryActionEvent.ActionType.NUM_6,actionList);
+        }
+        actionList = loadActionList(path+".num-7-actions");
+        if (!actionList.isEmpty()) {
+            clickActions.put(InventoryActionEvent.ActionType.NUM_7,actionList);
+        }
+        actionList = loadActionList(path+".num-8-actions");
+        if (!actionList.isEmpty()) {
+            clickActions.put(InventoryActionEvent.ActionType.NUM_8,actionList);
+        }
+        actionList = loadActionList(path+".num-9-actions");
+        if (!actionList.isEmpty()) {
+            clickActions.put(InventoryActionEvent.ActionType.NUM_9,actionList);
+        }
+        actionList = loadActionList(path+".swap-actions");
+        if (!actionList.isEmpty()) {
+            clickActions.put(InventoryActionEvent.ActionType.SWAP,actionList);
         }
 
-        Map<String,String> filledArgs = new HashMap<>();
-        for (String arg : condition.getArguments()) {
-            filledArgs.put(arg,cfg.getString(path+"."+arg));
-        }
-
-        ActionList successActions = loadActionList(path+".success-actions");
-        ActionList failActions = loadActionList(path+".fail-actions");
-
-        return new ConfiguredCondition(condition,filledArgs,successActions,failActions);
+        return new ClickActions(clickActions);
     }
 }

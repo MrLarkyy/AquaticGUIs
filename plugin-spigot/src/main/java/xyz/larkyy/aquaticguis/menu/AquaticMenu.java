@@ -1,4 +1,4 @@
-package xyz.larkyy.aquaticguis;
+package xyz.larkyy.aquaticguis.menu;
 
 import org.bukkit.entity.Player;
 import xyz.larkyy.aquaticguis.action.ActionList;
@@ -6,6 +6,7 @@ import xyz.larkyy.aquaticguis.api.Menu;
 import xyz.larkyy.aquaticguis.api.MenuSession;
 import xyz.larkyy.aquaticguis.api.NMSHandler;
 import xyz.larkyy.aquaticguis.condition.ConditionList;
+import xyz.larkyy.aquaticguis.menu.title.MenuTitle;
 
 import java.util.function.Consumer;
 
@@ -15,11 +16,13 @@ public class AquaticMenu extends Menu {
     private final ActionList openActions;
     private final ActionList closeActions;
     private final String id;
+    private final MenuTitle title;
 
-    public AquaticMenu(String id,String title, int size, Type type, NMSHandler nmsHandler,
+    public AquaticMenu(String id,MenuTitle title, int size, Type type, NMSHandler nmsHandler,
                        ConditionList openConditions, ActionList openActions,
                        ActionList closeActions) {
-        super(title, size, type, nmsHandler);
+        super(title.getFrames().get(0), size, type, nmsHandler);
+        this.title = title;
         this.openConditions = openConditions;
         this.closeActions = closeActions;
         this.openActions = openActions;
@@ -36,7 +39,9 @@ public class AquaticMenu extends Menu {
             return null;
         }
         openActions.run(player);
-        return super.open(player,factory);
+        MenuSession ms = super.open(player);
+        title.run(ms);
+        return ms;
     }
     @Override
     public MenuSession open(Player player) {
@@ -44,7 +49,9 @@ public class AquaticMenu extends Menu {
             return null;
         }
         openActions.run(player);
-        return super.open(player);
+        MenuSession ms = super.open(player);
+        title.run(ms);
+        return ms;
     }
 
     public ActionList getCloseActions() {

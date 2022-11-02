@@ -132,7 +132,7 @@ public final class NMS_v1_19_R2 implements NMSHandler {
             @Override
             public void write(ChannelHandlerContext channelHandlerContext, Object packet, ChannelPromise channelPromise) throws Exception {
 
-                if (filter.removePacket((Packet) packet)) {
+                if (filter.removePacket(packet)) {
                     super.write(channelHandlerContext, packet, channelPromise);
                     return;
                 }

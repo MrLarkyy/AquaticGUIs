@@ -1,9 +1,9 @@
 package xyz.larkyy.aquaticguis.api;
 
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public class MenuSession {
@@ -15,14 +15,18 @@ public class MenuSession {
     private Menu.Type type;
     private String title;
     private final NMSHandler nmsHandler;
+    private final Map<String,Object> data;
+    private final Menu menu;
 
-    public MenuSession(Player player, Map<Integer,MenuItem> items, int size, String title, Menu.Type type, NMSHandler nmsHandler) {
+    public MenuSession(Player player, Map<Integer,MenuItem> items, int size, String title, Menu.Type type, NMSHandler nmsHandler, Menu menu) {
         this.player = player;
         this.items = items;
         this.size = size;
         this.type = type;
         this.title = title;
         this.nmsHandler = nmsHandler;
+        this.data = new HashMap<>();
+        this.menu = menu;
 
         inventoryId = nmsHandler.getInventoryId(player);
         update();
@@ -61,41 +65,40 @@ public class MenuSession {
             public void run() {
                 nmsHandler.emptyPlayerInventory(player,true);
                 updateTitle();
-                loadItems();
             }
         }.runTaskAsynchronously(nmsHandler.getPlugin());
     }
 
     public void updateTitle() {
         nmsHandler.openScreen(player,inventoryId,Menu.translateMenuType(type,size),title);
+        loadItems();
     }
 
     private void loadItems() {
         for (Map.Entry<Integer, MenuItem> entry : items.entrySet()) {
             Integer slot = entry.getKey();
             MenuItem menuItem = entry.getValue();
-            /*
-            int actualInventoryId = inventoryId;
-            int actualSlot;
-
-            if (slot > size + 35) {
-                continue;
-            }
-
-            if (slot < size) {
-                actualSlot = slot;
-            } else {
-                actualInventoryId = 0;
-                actualSlot = size - (size - 9);
-                if (actualSlot >= 36) {
-                    actualSlot -= 36;
-                }
-            }
-
-             */
-            //Bukkit.broadcastMessage("Setting an item to a slot "+actualSlot+" of inventory "+actualInventoryId);
             nmsHandler.setSlotPacket(player, inventoryId, slot, menuItem.getItemStack());
         }
     }
 
+    public Object getData(String id) {
+        return data.get(id);
+    }
+
+    public void addData(String id, Object data) {
+        this.data.put(id,data);
+    }
+
+    public void removeData(String id) {
+        this.data.remove(id);
+    }
+
+    public Player getPlayer() {
+        return player;
+    }
+
+    public Menu getMenu() {
+        return menu;
+    }
 }

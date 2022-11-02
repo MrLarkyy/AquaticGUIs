@@ -66,9 +66,13 @@ public class Menu implements InventoryHolder {
     public MenuSession open(Player player) {
         nmsHandler.emptyPlayerInventory(player,false);
         player.openInventory(inventory);
-        MenuSession ms = new MenuSession(player,items,size,title,type,nmsHandler);
+        MenuSession ms = new MenuSession(player,items,size,title,type,nmsHandler,this);
         sessions.put(player.getUniqueId(),ms);
         return ms;
+    }
+
+    public void removeSession(Player player) {
+        sessions.remove(player.getUniqueId());
     }
 
     public MenuSession open(Player player, Consumer<MenuSession> factory) {

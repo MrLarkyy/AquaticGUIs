@@ -4,5 +4,5 @@ import org.bukkit.entity.Player;
 
 public abstract class Action {
 
-    public abstract boolean run(Player player, String value);
+    public abstract void run(Player player, String value);
 }

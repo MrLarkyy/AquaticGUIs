@@ -26,9 +26,15 @@ public class ActionList {
 
     public boolean run(Player player) {
         if (conditions.areMet(player)) {
-            actions.forEach(a -> a.run(player));
+            actions.forEach(a -> {
+                a.run(player);
+            });
             return true;
         }
         return false;
+    }
+
+    public boolean isEmpty() {
+        return actions.isEmpty();
     }
 }

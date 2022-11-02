@@ -1,5 +1,6 @@
 package xyz.larkyy.aquaticguis.condition;
 
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import xyz.larkyy.aquaticguis.action.ActionList;
 
@@ -33,7 +34,7 @@ public class ConditionList {
     }
 
     public boolean areMet(Player player) {
-        if (conditions.stream().allMatch(c -> c.isMet(player))) {
+        if (conditions.stream().allMatch(c -> c.isMet(player)) || conditions.isEmpty()) {
             if (successActions != null) {
                 successActions.run(player);
             }
