@@ -1,6 +1,7 @@
 package xyz.larkyy.aquaticguis.action;
 
 import xyz.larkyy.aquaticguis.AquaticGUIs;
+import xyz.larkyy.aquaticguis.action.impl.CloseMenuAction;
 import xyz.larkyy.aquaticguis.action.impl.MessageAction;
 import xyz.larkyy.aquaticguis.action.impl.OpenMenuAction;
 
@@ -19,6 +20,7 @@ public class Actions {
     private void loadDefaultActions() {
         registerAction("message", new MessageAction());
         registerAction("openmenu", new OpenMenuAction());
+        registerAction("closemenu", new CloseMenuAction());
     }
 
     public void registerAction(String id, Action action) {

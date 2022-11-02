@@ -132,6 +132,13 @@ public class Config {
                     Actions.inst().getAction("openmenu"),args
             );
         }
+        if (value.startsWith("[closemenu]")) {
+            args = value.substring(11).trim();
+            return new ConfiguredAction(
+                    new ConditionList(new ActionList(), new ActionList()),
+                    Actions.inst().getAction("closemenu"),args
+            );
+        }
         return null;
     }
 

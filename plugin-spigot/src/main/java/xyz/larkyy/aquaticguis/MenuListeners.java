@@ -7,11 +7,21 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerResourcePackStatusEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 import xyz.larkyy.aquaticguis.menu.AquaticMenu;
 import xyz.larkyy.aquaticguis.menu.title.MenuTitleSession;
 
 public class MenuListeners implements Listener {
+
+     @EventHandler
+    public void rpStatus(PlayerResourcePackStatusEvent e) {
+        if (e.getStatus() == PlayerResourcePackStatusEvent.Status.SUCCESSFULLY_LOADED) {
+            if (e.getPlayer() != null && e.getPlayer().isOnline()) {
+                AquaticGUIs.getInstance().getManager().getResourcePackLoadActions().run(e.getPlayer());
+            }
+        }
+    }
 
     @EventHandler
     public void onInvClose(InventoryCloseEvent e) {
