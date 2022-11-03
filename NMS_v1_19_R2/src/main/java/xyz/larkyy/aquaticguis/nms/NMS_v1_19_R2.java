@@ -18,10 +18,7 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
-import xyz.larkyy.aquaticguis.api.InventoryActionEvent;
-import xyz.larkyy.aquaticguis.api.Menu;
-import xyz.larkyy.aquaticguis.api.NMSHandler;
-import xyz.larkyy.aquaticguis.api.PacketFilter;
+import xyz.larkyy.aquaticguis.api.*;
 
 import java.util.List;
 
@@ -55,6 +52,7 @@ public final class NMS_v1_19_R2 implements NMSHandler {
         }
         serverPlayer.connection.send(pkt);
         setSlotPacket(player,0,45,new ItemStack(Material.AIR));
+
     }
 
     @Override
@@ -106,9 +104,9 @@ public final class NMS_v1_19_R2 implements NMSHandler {
                                 @Override
                                 public void run() {
                                     Bukkit.getServer().getPluginManager().callEvent(event);
+                                    item.activate(event);
                                 }
                             }.runTask(plugin);
-                            item.activate(event);
                         }
 
                         p.getChangedSlots().keySet().forEach(i -> {

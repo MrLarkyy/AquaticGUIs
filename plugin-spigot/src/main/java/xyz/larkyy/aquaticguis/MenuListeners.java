@@ -6,9 +6,12 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.event.inventory.InventoryPickupItemEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerPickupItemEvent;
 import org.bukkit.event.player.PlayerResourcePackStatusEvent;
 import org.bukkit.scheduler.BukkitRunnable;
+import xyz.larkyy.aquaticguis.api.Menu;
 import xyz.larkyy.aquaticguis.menu.AquaticMenu;
 import xyz.larkyy.aquaticguis.menu.title.MenuTitleSession;
 
@@ -21,6 +24,13 @@ public class MenuListeners implements Listener {
                 AquaticGUIs.getInstance().getManager().getResourcePackLoadActions().run(e.getPlayer());
             }
         }
+    }
+
+    @EventHandler
+    public void onItemPickup(PlayerPickupItemEvent e) {
+         if (e.getPlayer().getOpenInventory().getTopInventory().getHolder() instanceof Menu menu) {
+             e.setCancelled(true);
+         }
     }
 
     @EventHandler
