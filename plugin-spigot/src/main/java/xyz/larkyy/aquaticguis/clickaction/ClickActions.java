@@ -2,7 +2,6 @@ package xyz.larkyy.aquaticguis.clickaction;
 
 import org.bukkit.entity.Player;
 import xyz.larkyy.aquaticguis.action.ActionList;
-import xyz.larkyy.aquaticguis.api.InventoryActionEvent;
 import xyz.larkyy.aquaticguis.api.MenuActionEvent;
 
 import java.util.HashMap;

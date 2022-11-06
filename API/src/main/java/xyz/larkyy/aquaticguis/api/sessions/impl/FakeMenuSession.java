@@ -13,7 +13,8 @@ public class FakeMenuSession extends AbstractSession {
 
     public FakeMenuSession(Player player, AbstractMenu menu, int size) {
         super(player, menu, size);
-        update();
+        //update();
+        loadItems();
     }
 
     public void update() {
@@ -32,15 +33,12 @@ public class FakeMenuSession extends AbstractSession {
     }
 
     private void loadItems() {
-        /*
         nmsHandler().setContentPacket(
                 getPlayer(),
                 getInventoryId(),
                 Arrays.stream(getPlayer().getOpenInventory().getTopInventory().getContents()).toList(),
                 true
         );
-
-         */
 
 
         for (Map.Entry<Integer, MenuItem> entry : getItems().entrySet()) {

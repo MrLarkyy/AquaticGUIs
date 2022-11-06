@@ -101,7 +101,45 @@ public final class NMS_v1_19_R2 implements NMSHandler {
                     var ms = openedMenus.getMenu(p.getContainerId());
                     if (ms != null) {
 
-                        if (ms instanceof MenuSession || ms instanceof FakeMenuSession) {
+                        if (ms instanceof FakeMenuSession) {
+                            // Remove the item from player's cursor
+                            setSlotPacket(player, -1, -1, new ItemStack(Material.AIR));
+                            MenuActionEvent.ActionType actionType = translateClick(p.getButtonNum(), p.getClickType());
+                            if (actionType == MenuActionEvent.ActionType.SWAP) {
+                                setSlotPacket(player, 0, 45, new ItemStack(Material.AIR));
+                            }
+
+                            var item = ms.getItem(p.getSlotNum());
+                            if (item != null) {
+                                var event = new MenuActionEvent(player, p.getSlotNum(), item, actionType);
+                                new BukkitRunnable() {
+                                    @Override
+                                    public void run() {
+                                        Bukkit.getServer().getPluginManager().callEvent(event);
+                                        item.activate(event);
+                                    }
+                                }.runTask(plugin);
+                            }
+
+                            p.getChangedSlots().keySet().forEach(i -> {
+                                var menuItem = ms.getItem(i);
+                                ItemStack is;
+                                if (menuItem == null) {
+                                    if (i >= player.getOpenInventory().getTopInventory().getSize()) {
+                                        is = new ItemStack(Material.AIR);
+                                    } else {
+                                        is = player.getOpenInventory().getTopInventory().getItem(i);
+                                    }
+                                } else {
+                                    is = menuItem.getItemStack();
+                                }
+                                setSlotPacket(player, p.getContainerId(), i, is);
+                                if (menuItem != null) {
+                                    return;
+                                }
+                            });
+                        } else
+                        if (ms instanceof MenuSession) {
                             // Remove the item from player's cursor
                             setSlotPacket(player, -1, -1, new ItemStack(Material.AIR));
 
@@ -138,8 +176,7 @@ public final class NMS_v1_19_R2 implements NMSHandler {
                             return;
                         }
                     }
-                }
-
+                } else
                 if (packet instanceof ServerboundContainerClosePacket p) {
                     super.channelRead(ctx, packet);
                     var session = getOpenedMenus().getMenu(p.getContainerId());
@@ -176,6 +213,7 @@ public final class NMS_v1_19_R2 implements NMSHandler {
                         String id = matcher.group(1);
                         var fakeMenu = fakeMenus.get(id);
                         if (fakeMenu != null) {
+                            var title = Component.translatable(fakeMenu.getTitle());
                             fakeMenu.open(player);
                             return;
                         }
