@@ -8,6 +8,7 @@ import xyz.larkyy.aquaticguis.action.ActionList;
 import xyz.larkyy.aquaticguis.action.Actions;
 import xyz.larkyy.aquaticguis.action.ConfiguredAction;
 import xyz.larkyy.aquaticguis.api.InventoryActionEvent;
+import xyz.larkyy.aquaticguis.api.MenuActionEvent;
 import xyz.larkyy.aquaticguis.clickaction.ClickActions;
 import xyz.larkyy.aquaticguis.condition.ConditionList;
 import xyz.larkyy.aquaticguis.condition.Conditions;
@@ -214,69 +215,69 @@ public class Config {
     }
 
     public ClickActions loadClickActions(String path) {
-        Map<InventoryActionEvent.ActionType,ActionList> clickActions = new HashMap<>();
+        Map<MenuActionEvent.ActionType,ActionList> clickActions = new HashMap<>();
 
         ActionList actionList;
 
         actionList = loadActionList(path+".left-click-actions");
         if (!actionList.isEmpty()) {
-            clickActions.put(InventoryActionEvent.ActionType.LEFT,actionList);
+            clickActions.put(MenuActionEvent.ActionType.LEFT,actionList);
         }
         actionList = loadActionList(path+".shift-left-click-actions");
         if (!actionList.isEmpty()) {
-            clickActions.put(InventoryActionEvent.ActionType.SHIFT_LEFT,actionList);
+            clickActions.put(MenuActionEvent.ActionType.SHIFT_LEFT,actionList);
         }
         actionList = loadActionList(path+".right-click-actions");
         if (!actionList.isEmpty()) {
-            clickActions.put(InventoryActionEvent.ActionType.RIGHT,actionList);
+            clickActions.put(MenuActionEvent.ActionType.RIGHT,actionList);
         }
         actionList = loadActionList(path+".shift-right-click-actions");
         if (!actionList.isEmpty()) {
-            clickActions.put(InventoryActionEvent.ActionType.SHIFT_RIGHT,actionList);
+            clickActions.put(MenuActionEvent.ActionType.SHIFT_RIGHT,actionList);
         }
         actionList = loadActionList(path+".drop-actions");
         if (!actionList.isEmpty()) {
-            clickActions.put(InventoryActionEvent.ActionType.THROW,actionList);
+            clickActions.put(MenuActionEvent.ActionType.THROW,actionList);
         }
         actionList = loadActionList(path+".num-1-actions");
         if (!actionList.isEmpty()) {
-            clickActions.put(InventoryActionEvent.ActionType.NUM_1,actionList);
+            clickActions.put(MenuActionEvent.ActionType.NUM_1,actionList);
         }
         actionList = loadActionList(path+".num-2-actions");
         if (!actionList.isEmpty()) {
-            clickActions.put(InventoryActionEvent.ActionType.NUM_2,actionList);
+            clickActions.put(MenuActionEvent.ActionType.NUM_2,actionList);
         }
         actionList = loadActionList(path+".num-3-actions");
         if (!actionList.isEmpty()) {
-            clickActions.put(InventoryActionEvent.ActionType.NUM_3,actionList);
+            clickActions.put(MenuActionEvent.ActionType.NUM_3,actionList);
         }
         actionList = loadActionList(path+".num-4-actions");
         if (!actionList.isEmpty()) {
-            clickActions.put(InventoryActionEvent.ActionType.NUM_4,actionList);
+            clickActions.put(MenuActionEvent.ActionType.NUM_4,actionList);
         }
         actionList = loadActionList(path+".num-5-actions");
         if (!actionList.isEmpty()) {
-            clickActions.put(InventoryActionEvent.ActionType.NUM_5,actionList);
+            clickActions.put(MenuActionEvent.ActionType.NUM_5,actionList);
         }
         actionList = loadActionList(path+".num-6-actions");
         if (!actionList.isEmpty()) {
-            clickActions.put(InventoryActionEvent.ActionType.NUM_6,actionList);
+            clickActions.put(MenuActionEvent.ActionType.NUM_6,actionList);
         }
         actionList = loadActionList(path+".num-7-actions");
         if (!actionList.isEmpty()) {
-            clickActions.put(InventoryActionEvent.ActionType.NUM_7,actionList);
+            clickActions.put(MenuActionEvent.ActionType.NUM_7,actionList);
         }
         actionList = loadActionList(path+".num-8-actions");
         if (!actionList.isEmpty()) {
-            clickActions.put(InventoryActionEvent.ActionType.NUM_8,actionList);
+            clickActions.put(MenuActionEvent.ActionType.NUM_8,actionList);
         }
         actionList = loadActionList(path+".num-9-actions");
         if (!actionList.isEmpty()) {
-            clickActions.put(InventoryActionEvent.ActionType.NUM_9,actionList);
+            clickActions.put(MenuActionEvent.ActionType.NUM_9,actionList);
         }
         actionList = loadActionList(path+".swap-actions");
         if (!actionList.isEmpty()) {
-            clickActions.put(InventoryActionEvent.ActionType.SWAP,actionList);
+            clickActions.put(MenuActionEvent.ActionType.SWAP,actionList);
         }
 
         return new ClickActions(clickActions);

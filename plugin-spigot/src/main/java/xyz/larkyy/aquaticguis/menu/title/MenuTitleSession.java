@@ -4,16 +4,17 @@ import org.bukkit.Bukkit;
 import org.bukkit.scheduler.BukkitRunnable;
 import xyz.larkyy.aquaticguis.AquaticGUIs;
 import xyz.larkyy.aquaticguis.api.MenuSession;
+import xyz.larkyy.aquaticguis.api.sessions.AbstractSession;
 
 public class MenuTitleSession extends BukkitRunnable {
 
     private final MenuTitle title;
-    private final MenuSession menuSession;
+    private final AbstractSession menuSession;
     private boolean started = false;
 
     private int index = 0;
 
-    public MenuTitleSession(MenuTitle title, MenuSession menuSession) {
+    public MenuTitleSession(MenuTitle title, AbstractSession menuSession) {
         this.title = title;
         this.menuSession = menuSession;
         if (!title.getFrames().isEmpty() && title.getUpdate() > 0) {

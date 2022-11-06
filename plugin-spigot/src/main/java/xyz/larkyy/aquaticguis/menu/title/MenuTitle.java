@@ -1,6 +1,7 @@
 package xyz.larkyy.aquaticguis.menu.title;
 
 import xyz.larkyy.aquaticguis.api.MenuSession;
+import xyz.larkyy.aquaticguis.api.sessions.AbstractSession;
 
 import java.util.List;
 
@@ -14,7 +15,7 @@ public class MenuTitle {
         this.update = update;
     }
 
-    public void run(MenuSession ms) {
+    public void run(AbstractSession ms) {
         var titlesession = new MenuTitleSession(this,ms);
         ms.addData("title-session", titlesession);
     }

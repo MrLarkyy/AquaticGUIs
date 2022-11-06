@@ -14,18 +14,26 @@ import org.bukkit.Material;
 import org.bukkit.craftbukkit.v1_19_R1.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_19_R1.inventory.CraftItemStack;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import xyz.larkyy.aquaticguis.api.*;
+import xyz.larkyy.aquaticguis.api.menus.impl.FakeMenu;
+import xyz.larkyy.aquaticguis.api.sessions.impl.FakeMenuSession;
+import xyz.larkyy.aquaticguis.api.sessions.impl.MenuSession;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.regex.Pattern;
 
 public final class NMS_v1_19_R2 implements NMSHandler {
 
     private final PacketFilter filter = new PacketFilter();
+    private final OpenedMenus openedMenus = new OpenedMenus();
+    private final Map<String, FakeMenu> fakeMenus = new HashMap<>();
     private final JavaPlugin plugin;
+    private final Pattern pattern = Pattern.compile("<aquaticguis:(.*?)>");
     public NMS_v1_19_R2(JavaPlugin plugin) {
         this.plugin = plugin;
     }
@@ -56,8 +64,17 @@ public final class NMS_v1_19_R2 implements NMSHandler {
     }
 
     @Override
-    public void setContentPacket(Player player, int inventoryId, List<ItemStack> itemStacks) {
-
+    public void setContentPacket(Player player, int inventoryId, List<ItemStack> itemStacks, boolean filter) {
+        var serverPlayer = ((CraftPlayer)player).getHandle();
+        NonNullList<net.minecraft.world.item.ItemStack> list = NonNullList.create();
+        itemStacks.forEach(is -> {
+            list.add(CraftItemStack.asNMSCopy(is));
+        });
+        var pkt = new ClientboundContainerSetContentPacket(inventoryId,serverPlayer.containerMenu.getStateId(),list,CraftItemStack.asNMSCopy(new ItemStack(Material.AIR)));
+        if (filter) {
+            this.filter.addPacket(pkt);
+        }
+        serverPlayer.connection.send(pkt);
     }
     @Override
     public void openScreen(Player player, int inventoryId, String inventoryType, String title) {
@@ -76,87 +93,114 @@ public final class NMS_v1_19_R2 implements NMSHandler {
         CraftPlayer craftPlayer = (CraftPlayer) player;
         var channel = craftPlayer.getHandle().connection.connection.channel;
 
-        ChannelDuplexHandler channelDuplexHandler = new ChannelDuplexHandler() {
+        ChannelDuplexHandler cdh = new ChannelDuplexHandler() {
 
             @Override
-            public void channelRead(ChannelHandlerContext channelHandlerContext, Object packet) throws Exception {
-                Inventory inventory = player.getOpenInventory().getTopInventory();
-
+            public void channelRead(ChannelHandlerContext ctx, Object packet) throws Exception {
                 if (packet instanceof ServerboundContainerClickPacket p) {
+                    var ms = openedMenus.getMenu(p.getContainerId());
+                    if (ms != null) {
 
-                    if (inventory.getHolder() instanceof Menu menu) {
-                        var menuSession = menu.getSession(player);
+                        if (ms instanceof MenuSession || ms instanceof FakeMenuSession) {
+                            // Remove the item from player's cursor
+                            setSlotPacket(player, -1, -1, new ItemStack(Material.AIR));
 
-                        // Remove the item from player's cursor
-                        setSlotPacket(player,-1,-1,new ItemStack(Material.AIR));
+                            MenuActionEvent.ActionType actionType = translateClick(p.getButtonNum(), p.getClickType());
 
-                        InventoryActionEvent.ActionType actionType = translateClick(p.getButtonNum(),p.getClickType());
-
-                        // Check if player swapped the item and if so, set the offhand item to AIR
-                        if (actionType == InventoryActionEvent.ActionType.SWAP) {
-                            setSlotPacket(player,0,45,new ItemStack(Material.AIR));
-                        }
-
-                        var item = menuSession.getItem(p.getSlotNum());
-                        if (item != null) {
-                            var event = new InventoryActionEvent(player,p.getSlotNum(),item,actionType);
-                            new BukkitRunnable() {
-                                @Override
-                                public void run() {
-                                    Bukkit.getServer().getPluginManager().callEvent(event);
-                                    item.activate(event);
-                                }
-                            }.runTask(plugin);
-                        }
-
-                        p.getChangedSlots().keySet().forEach(i -> {
-                            var menuItem = menuSession.getItem(i);
-                            ItemStack is;
-                            if (menuItem == null) {
-                                is = new ItemStack(Material.AIR);
-                            } else {
-                                is = menuItem.getItemStack();
+                            // Check if player swapped the item and if so, set the offhand item to AIR
+                            if (actionType == MenuActionEvent.ActionType.SWAP) {
+                                setSlotPacket(player, 0, 45, new ItemStack(Material.AIR));
                             }
-                            setSlotPacket(player,p.getContainerId(),i,is);
 
-                        });
-                        return;
+                            var item = ms.getItem(p.getSlotNum());
+                            if (item != null) {
+                                var event = new MenuActionEvent(player, p.getSlotNum(), item, actionType);
+                                new BukkitRunnable() {
+                                    @Override
+                                    public void run() {
+                                        Bukkit.getServer().getPluginManager().callEvent(event);
+                                        item.activate(event);
+                                    }
+                                }.runTask(plugin);
+                            }
+
+                            p.getChangedSlots().keySet().forEach(i -> {
+                                var menuItem = ms.getItem(i);
+                                ItemStack is;
+                                if (menuItem == null) {
+                                    is = new ItemStack(Material.AIR);
+                                } else {
+                                    is = menuItem.getItemStack();
+                                }
+                                setSlotPacket(player, p.getContainerId(), i, is);
+
+                            });
+                            return;
+                        }
                     }
                 }
+
                 if (packet instanceof ServerboundContainerClosePacket p) {
-                    super.channelRead(channelHandlerContext, packet);
+                    super.channelRead(ctx, packet);
+                    var session = getOpenedMenus().getMenu(p.getContainerId());
+                    if (session != null) {
+                        var event = new MenuCloseEvent(player,session);
+                        new BukkitRunnable() {
+                            @Override
+                            public void run() {
+                                Bukkit.getPluginManager().callEvent(event);
+                            }
+                        }.runTask(plugin);
+                        getOpenedMenus().removeMenu(p.getContainerId());
+                    }
                     if (p.getContainerId() == getInventoryId(player)) {
                         var pkt = new ClientboundContainerClosePacket(p.getContainerId());
                         ((CraftPlayer)player).getHandle().connection.send(pkt);
                     }
                     return;
                 }
-
-                super.channelRead(channelHandlerContext, packet);
+                super.channelRead(ctx, packet);
             }
 
             @Override
-            public void write(ChannelHandlerContext channelHandlerContext, Object packet, ChannelPromise channelPromise) throws Exception {
+            public void write(ChannelHandlerContext ctx, Object packet, ChannelPromise promise) throws Exception {
 
                 if (filter.removePacket(packet)) {
-                    super.write(channelHandlerContext, packet, channelPromise);
+                    super.write(ctx, packet, promise);
                     return;
                 }
 
-                if (packet instanceof ClientboundContainerSetContentPacket p) {
-                    Inventory inventory = player.getOpenInventory().getTopInventory();
-                    if (inventory.getHolder() instanceof Menu) {
-                        return;
+                if (packet instanceof ClientboundOpenScreenPacket p) {
+                    var matcher = pattern.matcher(p.getTitle().getString());
+                    if (matcher.find()) {
+                        String id = matcher.group(1);
+                        var fakeMenu = fakeMenus.get(id);
+                        if (fakeMenu != null) {
+                            fakeMenu.open(player);
+                            return;
+                        }
                     }
                 }
 
-                super.write(channelHandlerContext, packet, channelPromise);
+                if (packet instanceof ClientboundContainerSetContentPacket p) {
+                    var ms = openedMenus.getMenu(p.getContainerId());
+                    if (ms != null) {
+                        if (ms instanceof MenuSession) {
+                            return;
+                        }
+                        if (ms instanceof FakeMenuSession) {
+                            return;
+                        }
+                    }
+                }
+
+                super.write(ctx, packet, promise);
             }
         };
 
         if (channel != null) {
             channel.eventLoop().execute(() -> {
-                channel.pipeline().addBefore("packet_handler", "inventory_packet_reader", channelDuplexHandler);
+                channel.pipeline().addBefore("packet_handler", "inventory_packet_reader", cdh);
             });
         }
     }
@@ -176,6 +220,16 @@ public final class NMS_v1_19_R2 implements NMSHandler {
     @Override
     public JavaPlugin getPlugin() {
         return plugin;
+    }
+
+    @Override
+    public OpenedMenus getOpenedMenus() {
+        return openedMenus;
+    }
+
+    @Override
+    public void addFakeMenu(FakeMenu fakeMenu) {
+        fakeMenus.put(fakeMenu.getId(),fakeMenu);
     }
 
     private MenuType translateInventoryType(String type) {
@@ -255,62 +309,62 @@ public final class NMS_v1_19_R2 implements NMSHandler {
         }
     }
 
-    private InventoryActionEvent.ActionType translateClick(int button, ClickType clickType) {
-        InventoryActionEvent.ActionType actionType = InventoryActionEvent.ActionType.LEFT;
+    private MenuActionEvent.ActionType translateClick(int button, ClickType clickType) {
+        MenuActionEvent.ActionType actionType = MenuActionEvent.ActionType.LEFT;
         switch (clickType) {
             case PICKUP -> {
                 if (button == 0) {
-                    actionType = InventoryActionEvent.ActionType.LEFT;
+                    actionType = MenuActionEvent.ActionType.LEFT;
                 } else {
-                    actionType = InventoryActionEvent.ActionType.RIGHT;
+                    actionType = MenuActionEvent.ActionType.RIGHT;
                 }
             }
             case THROW -> {
-                actionType = InventoryActionEvent.ActionType.THROW;
+                actionType = MenuActionEvent.ActionType.THROW;
             }
             case QUICK_MOVE -> {
                 if (button == 0) {
-                    actionType = InventoryActionEvent.ActionType.SHIFT_LEFT;
+                    actionType = MenuActionEvent.ActionType.SHIFT_LEFT;
                 } else {
-                    actionType = InventoryActionEvent.ActionType.SHIFT_RIGHT;
+                    actionType = MenuActionEvent.ActionType.SHIFT_RIGHT;
                 }
             }
             case SWAP -> {
 
                 switch (button) {
                     case 0 -> {
-                        actionType = InventoryActionEvent.ActionType.NUM_1;
+                        actionType = MenuActionEvent.ActionType.NUM_1;
                     }
                     case 1 -> {
-                        actionType = InventoryActionEvent.ActionType.NUM_2;
+                        actionType = MenuActionEvent.ActionType.NUM_2;
                     }
                     case 2 -> {
-                        actionType = InventoryActionEvent.ActionType.NUM_3;
+                        actionType = MenuActionEvent.ActionType.NUM_3;
                     }
                     case 3 -> {
-                        actionType = InventoryActionEvent.ActionType.NUM_4;
+                        actionType = MenuActionEvent.ActionType.NUM_4;
                     }
                     case 4 -> {
-                        actionType = InventoryActionEvent.ActionType.NUM_5;
+                        actionType = MenuActionEvent.ActionType.NUM_5;
                     }
                     case 5 -> {
-                        actionType = InventoryActionEvent.ActionType.NUM_6;
+                        actionType = MenuActionEvent.ActionType.NUM_6;
                     }
                     case 6 -> {
-                        actionType = InventoryActionEvent.ActionType.NUM_7;
+                        actionType = MenuActionEvent.ActionType.NUM_7;
                     }
                     case 7 -> {
-                        actionType = InventoryActionEvent.ActionType.NUM_8;
+                        actionType = MenuActionEvent.ActionType.NUM_8;
                     }
                     case 8 -> {
-                        actionType = InventoryActionEvent.ActionType.NUM_9;
+                        actionType = MenuActionEvent.ActionType.NUM_9;
                     }
                     case 40 -> {
-                        actionType = InventoryActionEvent.ActionType.SWAP;
+                        actionType = MenuActionEvent.ActionType.SWAP;
                     }
                 }
             }
-            default -> actionType = InventoryActionEvent.ActionType.LEFT;
+            default -> actionType = MenuActionEvent.ActionType.LEFT;
         }
         return actionType;
     }

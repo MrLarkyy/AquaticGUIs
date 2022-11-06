@@ -38,7 +38,7 @@ public class MenuSession {
         if (mi == null) {
             return;
         }
-        mi.activate(event);
+        //mi.activate(event);
     }
 
     public void setMenuItem(MenuItem menuItem) {
