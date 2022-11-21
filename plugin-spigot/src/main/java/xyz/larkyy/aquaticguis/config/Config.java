@@ -1,19 +1,22 @@
 package xyz.larkyy.aquaticguis.config;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import xyz.larkyy.aquaticguis.action.ActionList;
 import xyz.larkyy.aquaticguis.action.Actions;
 import xyz.larkyy.aquaticguis.action.ConfiguredAction;
-import xyz.larkyy.aquaticguis.api.InventoryActionEvent;
 import xyz.larkyy.aquaticguis.api.MenuActionEvent;
+import xyz.larkyy.aquaticguis.api.MenuItem;
 import xyz.larkyy.aquaticguis.clickaction.ClickActions;
 import xyz.larkyy.aquaticguis.condition.ConditionList;
 import xyz.larkyy.aquaticguis.condition.Conditions;
 import xyz.larkyy.aquaticguis.condition.ConfiguredCondition;
 import xyz.larkyy.aquaticguis.menu.AquaticMenuItem;
+import xyz.larkyy.aquaticguis.menu.ConditionalMenuItem;
 import xyz.larkyy.aquaticguis.menu.title.MenuTitle;
 import xyz.larkyy.itemlibrary.CustomItem;
 
@@ -121,26 +124,15 @@ public class Config {
 
     public ConfiguredAction translateAction(String value) {
         String args;
-        if (value.startsWith("[message]")) {
-            args = value.substring(9).trim();
-            return new ConfiguredAction(
-                    new ConditionList(new ActionList(), new ActionList()),
-                    Actions.inst().getAction("message"),args
-            );
-        }
-        if (value.startsWith("[openmenu]")) {
-            args = value.substring(10).trim();
-            return new ConfiguredAction(
-                    new ConditionList(new ActionList(), new ActionList()),
-                    Actions.inst().getAction("openmenu"),args
-            );
-        }
-        if (value.startsWith("[closemenu]")) {
-            args = value.substring(11).trim();
-            return new ConfiguredAction(
-                    new ConditionList(new ActionList(), new ActionList()),
-                    Actions.inst().getAction("closemenu"),args
-            );
+        ConditionList conditionList = new ConditionList(new ActionList(), new ActionList());
+        for (String key : Actions.inst().getActionTypes().keySet()) {
+            if (value.toLowerCase().startsWith("["+key.toLowerCase()+"]")) {
+                args = value.substring(2+key.length()).trim();
+                return new ConfiguredAction(
+                        conditionList,
+                        Actions.inst().getAction(key),args
+                );
+            }
         }
         return null;
     }
@@ -174,7 +166,6 @@ public class Config {
         }
         var condition = Conditions.inst().getCondition(type);
         if (condition == null) {
-            Bukkit.broadcastMessage("Unknown condition");
             return null;
         }
 
@@ -208,10 +199,31 @@ public class Config {
     public AquaticMenuItem loadMenuItem(String path) {
         var is = CustomItem.loadFromYaml(getConfiguration(),path).getItem();
         List<Integer> slots = getConfiguration().getIntegerList(path+".slots");
-        int priority = getConfiguration().getInt(path+".priority");
         var clickActions = loadClickActions(path);
+        int updateInterval = getConfiguration().getInt(path+".update-interval",0);
+        var ami = new AquaticMenuItem(is,slots,clickActions,new ArrayList<>(),new ConditionList(),null,updateInterval);
+        loadConditionalItems(path+".conditional-items",ami,slots);
+        return ami;
+    }
 
-        return new AquaticMenuItem(is,slots,priority,clickActions);
+    public void loadConditionalItems(String path, AquaticMenuItem base, List<Integer> slots) {
+        if (!getConfiguration().contains(path)) {
+            return;
+        }
+        for (String str : getConfiguration().getConfigurationSection(path).getKeys(false)) {
+            loadConditionalItem(path+"."+str,base,slots);
+        }
+    }
+
+    public void loadConditionalItem(String path, AquaticMenuItem base, List<Integer> slots) {
+        ItemStack is = CustomItem.loadFromYaml(getConfiguration(),path).getItem();
+        if (is == null) {
+            return;
+        }
+        var clickActions = loadClickActions(path);
+        var conditionList = loadConditionList(path+".conditions");
+        int updateInterval = getConfiguration().getInt(path+".update-interval",0);
+        base.addConditionalMenuItem(new AquaticMenuItem(is,slots,clickActions,null,conditionList,base,updateInterval));
     }
 
     public ClickActions loadClickActions(String path) {

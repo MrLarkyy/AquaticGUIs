@@ -32,7 +32,7 @@ public final class AquaticGUIs extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new ReaderListeners(),this);
         getServer().getPluginManager().registerEvents(new MenuListeners(),this);
 
-        menuRegistry.load();
+        reload();
         getCommand("aquaticguis").setExecutor(new Commands());
     }
 
@@ -53,6 +53,10 @@ public final class AquaticGUIs extends JavaPlugin {
         for(Player p : Bukkit.getOnlinePlayers()) {
             nmsHandler.ejectPlayer(p);
         }
+    }
+
+    public void reload() {
+        menuRegistry.load();
     }
 
     public static AquaticGUIs getInstance() {

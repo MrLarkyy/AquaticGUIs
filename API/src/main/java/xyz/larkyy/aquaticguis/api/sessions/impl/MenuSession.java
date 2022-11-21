@@ -31,7 +31,7 @@ public class MenuSession extends AbstractSession {
         loadItems();
     }
 
-    private void loadItems() {
+    public void loadItems() {
         for (Map.Entry<Integer, MenuItem> entry : getItems().entrySet()) {
             Integer slot = entry.getKey();
             MenuItem menuItem = entry.getValue();

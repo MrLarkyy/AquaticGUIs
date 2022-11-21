@@ -48,7 +48,7 @@ public class Menu extends AbstractMenu implements InventoryHolder {
 
     @Override
     public Inventory getInventory() {
-        return null;
+        return inventory;
     }
 
     public Type getType() {

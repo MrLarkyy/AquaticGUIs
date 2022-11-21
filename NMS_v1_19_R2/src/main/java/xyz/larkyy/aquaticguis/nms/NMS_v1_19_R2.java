@@ -83,6 +83,26 @@ public final class NMS_v1_19_R2 implements NMSHandler {
     }
 
     @Override
+    public void closeContainer(Player player, int inventoryId) {
+        if (inventoryId < 0) {
+            inventoryId = getInventoryId(player);
+        }
+        var pkt = new ClientboundContainerClosePacket(inventoryId);
+        var session = getOpenedMenus().getMenu(inventoryId);
+        if (session != null) {
+            var event = new MenuCloseEvent(player,session);
+            new BukkitRunnable() {
+                @Override
+                public void run() {
+                    Bukkit.getPluginManager().callEvent(event);
+                }
+            }.runTask(plugin);
+            getOpenedMenus().removeMenu(inventoryId);
+        }
+        ((CraftPlayer)player).getHandle().connection.send(pkt);
+    }
+
+    @Override
     public int getInventoryId(Player player) {
         var serverPlayer = ((CraftPlayer)player).getHandle();
         return serverPlayer.containerMenu.containerId;
@@ -97,30 +117,33 @@ public final class NMS_v1_19_R2 implements NMSHandler {
 
             @Override
             public void channelRead(ChannelHandlerContext ctx, Object packet) throws Exception {
+
                 if (packet instanceof ServerboundContainerClickPacket p) {
                     var ms = openedMenus.getMenu(p.getContainerId());
                     if (ms != null) {
+                        // Remove the item from player's cursor
+                        setSlotPacket(player, -1, -1, new ItemStack(Material.AIR));
+                        MenuActionEvent.ActionType actionType = translateClick(p.getButtonNum(), p.getClickType());
+
+                        // Check if player swapped the item and if so, set the offhand item to AIR
+                        if (actionType == MenuActionEvent.ActionType.SWAP) {
+                            setSlotPacket(player, 0, 45, new ItemStack(Material.AIR));
+                        }
+
+                        var item = ms.getItem(p.getSlotNum());
+
+                        if (item != null) {
+                            var event = new MenuActionEvent(player, p.getSlotNum(), item, actionType,ms);
+                            new BukkitRunnable() {
+                                @Override
+                                public void run() {
+                                    Bukkit.getServer().getPluginManager().callEvent(event);
+                                    item.activate(event);
+                                }
+                            }.runTask(plugin);
+                        }
 
                         if (ms instanceof FakeMenuSession) {
-                            // Remove the item from player's cursor
-                            setSlotPacket(player, -1, -1, new ItemStack(Material.AIR));
-                            MenuActionEvent.ActionType actionType = translateClick(p.getButtonNum(), p.getClickType());
-                            if (actionType == MenuActionEvent.ActionType.SWAP) {
-                                setSlotPacket(player, 0, 45, new ItemStack(Material.AIR));
-                            }
-
-                            var item = ms.getItem(p.getSlotNum());
-                            if (item != null) {
-                                var event = new MenuActionEvent(player, p.getSlotNum(), item, actionType);
-                                new BukkitRunnable() {
-                                    @Override
-                                    public void run() {
-                                        Bukkit.getServer().getPluginManager().callEvent(event);
-                                        item.activate(event);
-                                    }
-                                }.runTask(plugin);
-                            }
-
                             p.getChangedSlots().keySet().forEach(i -> {
                                 var menuItem = ms.getItem(i);
                                 ItemStack is;
@@ -134,34 +157,9 @@ public final class NMS_v1_19_R2 implements NMSHandler {
                                     is = menuItem.getItemStack();
                                 }
                                 setSlotPacket(player, p.getContainerId(), i, is);
-                                if (menuItem != null) {
-                                    return;
-                                }
                             });
-                        } else
+                        }
                         if (ms instanceof MenuSession) {
-                            // Remove the item from player's cursor
-                            setSlotPacket(player, -1, -1, new ItemStack(Material.AIR));
-
-                            MenuActionEvent.ActionType actionType = translateClick(p.getButtonNum(), p.getClickType());
-
-                            // Check if player swapped the item and if so, set the offhand item to AIR
-                            if (actionType == MenuActionEvent.ActionType.SWAP) {
-                                setSlotPacket(player, 0, 45, new ItemStack(Material.AIR));
-                            }
-
-                            var item = ms.getItem(p.getSlotNum());
-                            if (item != null) {
-                                var event = new MenuActionEvent(player, p.getSlotNum(), item, actionType);
-                                new BukkitRunnable() {
-                                    @Override
-                                    public void run() {
-                                        Bukkit.getServer().getPluginManager().callEvent(event);
-                                        item.activate(event);
-                                    }
-                                }.runTask(plugin);
-                            }
-
                             p.getChangedSlots().keySet().forEach(i -> {
                                 var menuItem = ms.getItem(i);
                                 ItemStack is;
@@ -176,9 +174,9 @@ public final class NMS_v1_19_R2 implements NMSHandler {
                             return;
                         }
                     }
-                } else
+                }
+
                 if (packet instanceof ServerboundContainerClosePacket p) {
-                    super.channelRead(ctx, packet);
                     var session = getOpenedMenus().getMenu(p.getContainerId());
                     if (session != null) {
                         var event = new MenuCloseEvent(player,session);
@@ -194,8 +192,10 @@ public final class NMS_v1_19_R2 implements NMSHandler {
                         var pkt = new ClientboundContainerClosePacket(p.getContainerId());
                         ((CraftPlayer)player).getHandle().connection.send(pkt);
                     }
+                    super.channelRead(ctx, packet);
                     return;
                 }
+
                 super.channelRead(ctx, packet);
             }
 
@@ -213,7 +213,6 @@ public final class NMS_v1_19_R2 implements NMSHandler {
                         String id = matcher.group(1);
                         var fakeMenu = fakeMenus.get(id);
                         if (fakeMenu != null) {
-                            var title = Component.translatable(fakeMenu.getTitle());
                             fakeMenu.open(player);
                             return;
                         }
@@ -223,10 +222,7 @@ public final class NMS_v1_19_R2 implements NMSHandler {
                 if (packet instanceof ClientboundContainerSetContentPacket p) {
                     var ms = openedMenus.getMenu(p.getContainerId());
                     if (ms != null) {
-                        if (ms instanceof MenuSession) {
-                            return;
-                        }
-                        if (ms instanceof FakeMenuSession) {
+                        if (ms instanceof MenuSession || ms instanceof FakeMenuSession) {
                             return;
                         }
                     }
@@ -250,7 +246,6 @@ public final class NMS_v1_19_R2 implements NMSHandler {
             try {
                 channel.pipeline().remove("inventory_packet_reader");
             } catch (Exception ignored) {
-
             }
         }
     }
@@ -407,4 +402,3 @@ public final class NMS_v1_19_R2 implements NMSHandler {
         return actionType;
     }
 }
-

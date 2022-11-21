@@ -1,38 +1,18 @@
 package xyz.larkyy.aquaticguis;
-
-import xyz.larkyy.aquaticguis.api.Menu;
+import me.clip.placeholderapi.PlaceholderAPI;
+import org.bukkit.entity.Player;
+import xyz.larkyy.colorutils.Colors;
 
 public class Utils {
 
-    public static String translateMenuType(Menu.Type type, int size) {
-        switch (type) {
-            case DISPENSER -> {
-                return "generic_3x3";
-            }
-            default -> {
-                switch (size) {
-                    case 9 -> {
-                        return "generic_9x1";
-                    }
-                    case 18 -> {
-                        return "generic_9x2";
-                    }
-                    case 27 -> {
-                        return "generic_9x3";
-                    }
-                    case 36 -> {
-                        return "generic_9x4";
-                    }
-                    case 45 -> {
-                        return "generic_9x5";
-                    }
-                    case 54 -> {
-                        return "generic_9x6";
-                    }
-                }
+    public static String format(String input, Player player) {
+        if (player != null) {
+            var plugin = AquaticGUIs.getInstance().getServer().getPluginManager().getPlugin("PlaceholderAPI");
+            if (plugin != null && plugin.isEnabled()) {
+                input = PlaceholderAPI.setPlaceholders(player, input);
             }
         }
-        return "generic_9x1";
+        return Colors.format(input);
     }
 
 }

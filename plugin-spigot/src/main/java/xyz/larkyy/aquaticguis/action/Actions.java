@@ -1,9 +1,7 @@
 package xyz.larkyy.aquaticguis.action;
 
 import xyz.larkyy.aquaticguis.AquaticGUIs;
-import xyz.larkyy.aquaticguis.action.impl.CloseMenuAction;
-import xyz.larkyy.aquaticguis.action.impl.MessageAction;
-import xyz.larkyy.aquaticguis.action.impl.OpenMenuAction;
+import xyz.larkyy.aquaticguis.action.impl.*;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -21,6 +19,8 @@ public class Actions {
         registerAction("message", new MessageAction());
         registerAction("openmenu", new OpenMenuAction());
         registerAction("closemenu", new CloseMenuAction());
+        registerAction("consolecommand", new ConsoleCommandAction());
+        registerAction("updatemenu", new UpdateMenuAction());
     }
 
     public void registerAction(String id, Action action) {
@@ -35,6 +35,9 @@ public class Actions {
         return actionTypes.get(id.toUpperCase());
     }
 
+    public Map<String, Action> getActionTypes() {
+        return actionTypes;
+    }
 
     public static Actions inst() {
         return AquaticGUIs.getInstance().getActions();

@@ -16,6 +16,7 @@ public interface NMSHandler {
     void injectPlayer(Player player);
     void ejectPlayer(Player player);
     void openScreen(Player player, int inventoryId, String inventoryType, String title);
+    void closeContainer(Player player, int inventoryId);
     JavaPlugin getPlugin();
     OpenedMenus getOpenedMenus();
     void addFakeMenu(FakeMenu fakeMenu);

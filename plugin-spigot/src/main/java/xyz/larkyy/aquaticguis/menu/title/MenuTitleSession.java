@@ -1,9 +1,8 @@
 package xyz.larkyy.aquaticguis.menu.title;
 
-import org.bukkit.Bukkit;
 import org.bukkit.scheduler.BukkitRunnable;
 import xyz.larkyy.aquaticguis.AquaticGUIs;
-import xyz.larkyy.aquaticguis.api.MenuSession;
+import xyz.larkyy.aquaticguis.Utils;
 import xyz.larkyy.aquaticguis.api.sessions.AbstractSession;
 
 public class MenuTitleSession extends BukkitRunnable {
@@ -44,7 +43,7 @@ public class MenuTitleSession extends BukkitRunnable {
         } else {
             title = this.title.getFrames().get(index);
         }
-        return title;
+        return Utils.format(title,menuSession.getPlayer());
     }
 
     public void stop() {

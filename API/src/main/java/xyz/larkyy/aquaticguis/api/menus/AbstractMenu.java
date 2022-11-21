@@ -1,9 +1,7 @@
 package xyz.larkyy.aquaticguis.api.menus;
 
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.Inventory;
 import xyz.larkyy.aquaticguis.api.MenuItem;
-import xyz.larkyy.aquaticguis.api.MenuSession;
 import xyz.larkyy.aquaticguis.api.NMSHandler;
 import xyz.larkyy.aquaticguis.api.menus.impl.Menu;
 import xyz.larkyy.aquaticguis.api.sessions.AbstractSession;
@@ -16,7 +14,7 @@ public abstract class AbstractMenu {
 
     private final String title;
     private final NMSHandler nmsHandler;
-    private final Map<Integer, MenuItem> items = new HashMap<>();
+    private Map<Integer, MenuItem> items = new HashMap<>();
 
     public AbstractMenu(String title, NMSHandler nmsHandler) {
         this.title = title;
@@ -35,6 +33,10 @@ public abstract class AbstractMenu {
 
     public Map<Integer, MenuItem> getItems() {
         return items;
+    }
+
+    public void setItems(Map<Integer, MenuItem> items) {
+        this.items = items;
     }
 
     public String getTitle() {

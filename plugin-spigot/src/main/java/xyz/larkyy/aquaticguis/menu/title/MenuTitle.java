@@ -1,6 +1,5 @@
 package xyz.larkyy.aquaticguis.menu.title;
 
-import xyz.larkyy.aquaticguis.api.MenuSession;
 import xyz.larkyy.aquaticguis.api.sessions.AbstractSession;
 
 import java.util.List;

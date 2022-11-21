@@ -35,4 +35,7 @@ public class MenuRegistry {
         return menus.get(id);
     }
 
+    public Map<String, AquaticMenu> getMenus() {
+        return menus;
+    }
 }

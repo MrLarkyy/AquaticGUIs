@@ -1,6 +1,7 @@
 package xyz.larkyy.aquaticguis.api;
 
 
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.List;
@@ -30,5 +31,9 @@ public class MenuItem {
         for (Consumer<MenuActionEvent> a : actions) {
             a.accept(event);
         }
+    }
+
+    public void setActions(List<Consumer<MenuActionEvent>> actions) {
+        this.actions = actions;
     }
 }

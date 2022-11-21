@@ -5,7 +5,9 @@ import xyz.larkyy.aquaticguis.action.ActionList;
 import xyz.larkyy.aquaticguis.api.NMSHandler;
 import xyz.larkyy.aquaticguis.api.menus.impl.Menu;
 import xyz.larkyy.aquaticguis.api.sessions.AbstractSession;
+import xyz.larkyy.aquaticguis.api.sessions.impl.MenuSession;
 import xyz.larkyy.aquaticguis.condition.ConditionList;
+import xyz.larkyy.aquaticguis.menu.session.AquaticMenuSession;
 import xyz.larkyy.aquaticguis.menu.title.MenuTitle;
 
 import java.util.function.Consumer;
@@ -34,22 +36,17 @@ public class AquaticMenu extends Menu {
     }
 
     @Override
-    public AbstractSession open(Player player, Consumer<AbstractSession> factory) {
-        if (!openConditions.areMet(player)) {
-            return null;
-        }
-        openActions.run(player);
-        AbstractSession ms = super.open(player);
-        title.run(ms);
-        return ms;
-    }
-    @Override
     public AbstractSession open(Player player) {
         if (!openConditions.areMet(player)) {
             return null;
         }
         openActions.run(player);
-        AbstractSession ms = super.open(player);
+
+        getNmsHandler().emptyPlayerInventory(player,false);
+        player.openInventory(super.getInventory());
+        AquaticMenuSession ms = new AquaticMenuSession(player,this,super.getSize());
+        getNmsHandler().getOpenedMenus().addMenu(ms);
+
         title.run(ms);
         return ms;
     }

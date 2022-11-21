@@ -13,7 +13,7 @@ import java.util.Map;
 public abstract class AbstractSession {
 
     private final Player player;
-    private final Map<Integer, MenuItem> items;
+    private Map<Integer, MenuItem> items;
     private int size;
     private String title;
     private final AbstractMenu menu;
@@ -73,6 +73,10 @@ public abstract class AbstractSession {
 
     public Map<Integer, MenuItem> getItems() {
         return items;
+    }
+
+    public void setItems(Map<Integer, MenuItem> items) {
+        this.items = items;
     }
 
     public int getSize() {

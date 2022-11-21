@@ -2,6 +2,7 @@ package xyz.larkyy.aquaticguis.action;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import xyz.larkyy.aquaticguis.Utils;
 import xyz.larkyy.aquaticguis.condition.ConditionList;
 
 public class ConfiguredAction {
@@ -18,7 +19,7 @@ public class ConfiguredAction {
 
     public boolean run(Player player) {
         if (conditions.areMet(player)) {
-            action.run(player,value);
+            action.run(player, Utils.format(value,player));
             return true;
         }
         return false;

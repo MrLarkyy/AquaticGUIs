@@ -13,7 +13,7 @@ public class FakeMenuSession extends AbstractSession {
 
     public FakeMenuSession(Player player, AbstractMenu menu, int size) {
         super(player, menu, size);
-        //update();
+        update();
         loadItems();
     }
 
